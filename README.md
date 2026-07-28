@@ -1,92 +1,90 @@
 # base32-cli
 
-A CLI encoder/decoder for Base32 (RFC 4648) with several alphabet variants:
-standard, extended-hex, unpadded, and Crockford Base32. Single static Go
-binary, no dependencies.
+Fast Base32 encoder/decoder for the terminal.
 
-## Features
-
-- `encode` / `decode` with RFC 4648 standard alphabet (A-Z, 2-7, `=` padding)
-- `-variant hex` for the RFC 4648 "Extended Hex" alphabet (0-9, A-V)
-- `-variant nopad` for standard Base32 without padding
-- `-variant crockford` for Crockford Base32 (no `I L O U`, decodes
-  case-insensitively with `I/L->1`, `O->0`, ignores `-`, `_` and spaces)
-- `batch` mode for line-by-line processing of a file or stdin
-- JSON output (`-json`) on every command
-- Reads text from an argument or from stdin (`-`)
-- Zero dependencies
+Supports:
+- Standard Base32 (RFC 4648)
+- Base32hex variant (RFC 4648 extended hex alphabet)
+- With/without padding
+- Input from stdin or arguments
+- Optional JSON output
 
 ## Install
 
-```sh
-git clone https://github.com/TataneSan/base32-cli.git
+```bash
 cd base32-cli
 go build -o base32-cli .
-sudo install -m 0755 base32-cli /usr/local/bin/
+sudo mv base32-cli /usr/local/bin/
+```
+
+Or run directly:
+
+```bash
+go run . "hello world"
 ```
 
 ## Usage
 
-```
-base32-cli <command> [ARGS] [flags]
-
-COMMANDS:
-    encode TEXT        Encode text to Base32
-    decode TEXT        Decode Base32 to text
-    batch FILE         Encode each line of FILE ("-" for stdin)
-    batch -d FILE      Decode each line of FILE ("-" for stdin)
-    version            Show version
-
-Variants (flag -variant): std | hex | nopad | crockford
+Encode from arguments:
+```bash
+base32-cli "hello world"
+# NBSWY3DPEB3W64TMMQ======
 ```
 
-### Encode / decode
-
-```sh
-$ base32-cli encode "hello"
-NBSWY3DP
-
-$ base32-cli decode "NBSWY3DP"
-hello
-
-$ base32-cli encode "hello" -variant hex
-D1MORR3P
-
-$ base32-cli encode "hello world" -variant nopad
-NBSWY3DPEB3W64TMMQ
-
-$ base32-cli encode "hello" -variant crockford
-D1JPRV3F
+Encode from stdin:
+```bash
+echo "hello world" | base32-cli
 ```
 
-### Via stdin
-
-```sh
-$ echo -n "hello" | base32-cli encode -
-NBSWY3DP
+Decode:
+```bash
+base32-cli -d "NBSWY3DPEB3W64TMMQ======"
+# hello world
 ```
 
-### Batch mode
-
-```sh
-$ printf "foo\nbar\n" | base32-cli batch -
-MZXW6
-MZXHO
-
-$ echo "NBSWY3DP" | base32-cli batch -d -
-hello
+Use base32hex variant:
+```bash
+base32-cli -hex "hello world"
+# D1IMOR3F41RMUSFJCC======
 ```
 
-### JSON output
+No padding:
+```bash
+base32-cli -nopad "hello world"
+# NBSWY3DPEB3W64TMMQ
+```
 
-```sh
-$ base32-cli encode "hello" -json
-{
-  "mode": "encode",
-  "variant": "std",
-  "input": "hello",
-  "output": "NBSWY3DP"
-}
+JSON output:
+```bash
+base32-cli -json "hello world"
+# {"action":"encode","input":"hello world","output":"NBSWY3DPEB3W64TMMQ======","variant":"std"}
+```
+
+Decode + JSON:
+```bash
+base32-cli -d -json "NBSWY3DPEB3W64TMMQ======"
+```
+
+## Flags
+
+| Flag     | Description                              |
+|----------|------------------------------------------|
+| `-d`     | Decode instead of encode                 |
+| `-hex`   | Use base32hex alphabet (0-9A-V)          |
+| `-nopad` | Remove `=` padding                       |
+| `-json`  | Output result as JSON (machine-readable) |
+
+## Examples
+
+```bash
+# Encode a token for TOTP
+base32-cli -nopad -hex "JBSWY3DPEHPK3PXP"
+
+# Decode from a file
+base32-cli -d < input.b32 > output.bin
+
+# Pipe through
+cat data.txt | base32-cli | base32-cli -d
 ```
 
 ## License
