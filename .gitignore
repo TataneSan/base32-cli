@@ -1,0 +1,17 @@
+# Binaries
+base32-cli
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test artifacts
+*.test
+*.out
+coverage.*
+
+# Editors
+.idea/
+.vscode/
+*.swp
+.DS_Store
